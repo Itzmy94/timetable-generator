@@ -5,7 +5,7 @@ from costs import check_hard_constraints, hard_constraints_cost, empty_space_gro
     free_hour
 import copy
 import math
-
+import pandas as pd
 
 def initial_population(data, matrix, free, filled, groups_empty_space, teachers_empty_space, subjects_order):
     """
@@ -251,6 +251,8 @@ def simulated_hardening(matrix, data, free, filled, groups_empty_space, teachers
     Algorithm that uses simulated hardening with geometric decrease of temperature to optimize timetable by satisfying
     soft constraints as much as possible (empty space for groups and existence of an hour in which there is no classes).
     """
+    #Historic costs
+    list_h_cost = []
     # number of iterations
     iter_count = 2500
     # temperature
@@ -288,6 +290,7 @@ def simulated_hardening(matrix, data, free, filled, groups_empty_space, teachers
             # take new cost and continue with new data
             curr_cost = new_cost
         else:
+            list_h_cost.append(curr_cost)
             # return to previously saved data
             matrix = copy.deepcopy(old_matrix)
             free = copy.deepcopy(old_free)
@@ -298,12 +301,15 @@ def simulated_hardening(matrix, data, free, filled, groups_empty_space, teachers
         if i % 100 == 0:
             print('Iteration: {:4d} | Average cost: {:0.8f}'.format(i, curr_cost))
 
+    ax = pd.DataFrame(list_h_cost).plot( title = 'Cost along iterations', legend=False)
+    ax.set_xlabel("Iterations")
+    ax.set_ylabel("Cost")
+    axsavefig('solution_files/'+file.split('.')[0]+'.jpg')
     print('TIMETABLE AFTER HARDENING')
     show_timetable(matrix)
     print('STATISTICS AFTER HARDENING')
     show_statistics(matrix, data, subjects_order, groups_empty_space, teachers_empty_space)
     write_solution_to_file(matrix, data, filled, file, groups_empty_space, teachers_empty_space, subjects_order)
-
 
 def main():
     """
